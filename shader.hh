@@ -48,11 +48,16 @@ public:
 };
 
 template<class T>
-void glUniform(GLint __attribute__((unused)) loc, T __attribute__((unused)) &value) { }
+void glUniform(GLint __attribute__((unused)) loc, const T __attribute__((unused)) &value) { }
 
 template<>
-void glUniform<glm::mat4>(GLint loc, glm::mat4 &value) {
+void glUniform<glm::mat4>(GLint loc, const glm::mat4 &value) {
     glUniformMatrix4fv(loc, 1, GL_FALSE, &value[0][0]);
+}
+
+template<>
+void glUniform<GLuint>(GLint loc, const GLuint &value) {
+    glUniform1i(loc, value);
 }
 
 class program : public entity {
@@ -93,7 +98,7 @@ public:
     }
 
     template<class T>
-    void uniform_set(int id, T &value) {
+    void uniform_set(int id, const T &value) {
         glUniform(id, value);
     }
 };

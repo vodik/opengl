@@ -15,29 +15,33 @@
 #include <GLES3/gl3.h>
 
 #include "shader.hh"
+#include "texture.hh"
 
 const char *vshader_src =
     "#version 140                                    \n"
     "                                                \n"
-    "in vec3 in_Color;                               \n"
+    "in vec2 in_UV;                                  \n"
     "in vec3 in_Position;                            \n"
-    "out vec3 ex_Color;                              \n"
+    "out vec2 UV;                                    \n"
+    "                                                \n"
     "uniform mat4 MVP;                               \n"
     "                                                \n"
     "void main() {                                   \n"
     "    gl_Position = MVP * vec4(in_Position, 1.0); \n"
-    "    ex_Color = in_Color;                        \n"
+    "    UV = in_UV;                                 \n"
     "}                                               \n";
 
 const char *fshader_src =
     "#version 140                                    \n"
-    "                                                \n"
     "precision mediump float;                        \n"
-    "in vec3 ex_Color;                               \n"
-    "out vec4 out_Color;                             \n"
+    "                                                \n"
+    "in vec2 UV;                                     \n"
+    "out vec4 color;                                 \n"
+    "                                                \n"
+    "uniform sampler2D tex;                          \n"
     "                                                \n"
     "void main() {                                   \n"
-    "    out_Color = vec4(ex_Color, 0.0);            \n"
+    "    color = texture2D(tex, UV);                 \n"
     "}                                               \n";
 
 static const std::vector<GLfloat> g_vertex_buffer_data = {
@@ -79,43 +83,43 @@ static const std::vector<GLfloat> g_vertex_buffer_data = {
      1.0f, -1.0f,  1.0f,
 };
 
-static const std::vector<GLfloat> g_color_buffer_data = {
-    0.583f,  0.771f,  0.014f,
-    0.609f,  0.115f,  0.436f,
-    0.327f,  0.483f,  0.844f,
-    0.822f,  0.569f,  0.201f,
-    0.435f,  0.602f,  0.223f,
-    0.310f,  0.747f,  0.185f,
-    0.597f,  0.770f,  0.761f,
-    0.559f,  0.436f,  0.730f,
-    0.359f,  0.583f,  0.152f,
-    0.483f,  0.596f,  0.789f,
-    0.559f,  0.861f,  0.639f,
-    0.195f,  0.548f,  0.859f,
-    0.014f,  0.184f,  0.576f,
-    0.771f,  0.328f,  0.970f,
-    0.406f,  0.615f,  0.116f,
-    0.676f,  0.977f,  0.133f,
-    0.971f,  0.572f,  0.833f,
-    0.140f,  0.616f,  0.489f,
-    0.997f,  0.513f,  0.064f,
-    0.945f,  0.719f,  0.592f,
-    0.543f,  0.021f,  0.978f,
-    0.279f,  0.317f,  0.505f,
-    0.167f,  0.620f,  0.077f,
-    0.347f,  0.857f,  0.137f,
-    0.055f,  0.953f,  0.042f,
-    0.714f,  0.505f,  0.345f,
-    0.783f,  0.290f,  0.734f,
-    0.722f,  0.645f,  0.174f,
-    0.302f,  0.455f,  0.848f,
-    0.225f,  0.587f,  0.040f,
-    0.517f,  0.713f,  0.338f,
-    0.053f,  0.959f,  0.120f,
-    0.393f,  0.621f,  0.362f,
-    0.673f,  0.211f,  0.457f,
-    0.820f,  0.883f,  0.371f,
-    0.982f,  0.099f,  0.879f
+static const std::vector<GLfloat> g_uv_buffer_data = {
+    0.000059f, 1.0f-0.000004f,
+    0.000103f, 1.0f-0.336048f,
+    0.335973f, 1.0f-0.335903f,
+    1.000023f, 1.0f-0.000013f,
+    0.667979f, 1.0f-0.335851f,
+    0.999958f, 1.0f-0.336064f,
+    0.667979f, 1.0f-0.335851f,
+    0.336024f, 1.0f-0.671877f,
+    0.667969f, 1.0f-0.671889f,
+    1.000023f, 1.0f-0.000013f,
+    0.668104f, 1.0f-0.000013f,
+    0.667979f, 1.0f-0.335851f,
+    0.000059f, 1.0f-0.000004f,
+    0.335973f, 1.0f-0.335903f,
+    0.336098f, 1.0f-0.000071f,
+    0.667979f, 1.0f-0.335851f,
+    0.335973f, 1.0f-0.335903f,
+    0.336024f, 1.0f-0.671877f,
+    1.000004f, 1.0f-0.671847f,
+    0.999958f, 1.0f-0.336064f,
+    0.667979f, 1.0f-0.335851f,
+    0.668104f, 1.0f-0.000013f,
+    0.335973f, 1.0f-0.335903f,
+    0.667979f, 1.0f-0.335851f,
+    0.335973f, 1.0f-0.335903f,
+    0.668104f, 1.0f-0.000013f,
+    0.336098f, 1.0f-0.000071f,
+    0.000103f, 1.0f-0.336048f,
+    0.000004f, 1.0f-0.671870f,
+    0.336024f, 1.0f-0.671877f,
+    0.000103f, 1.0f-0.336048f,
+    0.336024f, 1.0f-0.671877f,
+    0.335973f, 1.0f-0.335903f,
+    0.667969f, 1.0f-0.671889f,
+    1.000004f, 1.0f-0.671847f,
+    0.667979f, 1.0f-0.335851f
 };
 
 /* {{{ ERROR HANDLING */
@@ -210,42 +214,49 @@ public:
 namespace gl { /* {{{ */
 
 class vbo {
+    struct data {
+        GLuint buffer;
+        GLint size;
+    };
+
     GLuint id;
-    std::vector<GLuint> buffers;
+    std::vector<struct data> buffers;
     size_t triangles = 0;
 
 public:
-    vbo(const std::vector<GLfloat> &data) {
+    vbo(const std::vector<GLfloat> &data, int size) {
         glGenVertexArrays(1, &id);
         glBindVertexArray(id);
 
-        triangles = data.size();
-        add(data);
+        triangles = data.size() / size;
+        add(data, size);
     }
 
-    void add(const std::vector<GLfloat> &data) {
-        assert(triangles == data.size());
+    void add(const std::vector<GLfloat> &data, int size) {
+        assert(triangles == data.size() / size);
 
-        GLuint buffer;
-        glGenBuffers(1, &buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, buffer);
+        struct data d;
+        glGenBuffers(1, &d.buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, d.buffer);
         glBufferData(GL_ARRAY_BUFFER, vector_size(data), data.data(), GL_STATIC_DRAW);
-        buffers.push_back(buffer);
+
+        d.size = size;
+        buffers.push_back(d);
     }
 
     ~vbo() {
         printf("deleting vbo\n");
-        glDeleteBuffers(buffers.size(), buffers.data());
+        /* glDeleteBuffers(buffers.size(), buffers.data()); */
         glDeleteVertexArrays(1, &id);
     }
 
     void draw() const {
         int i = 0;
 
-        for (GLuint buffer : buffers) {
+        for (auto d : buffers) {
             glEnableVertexAttribArray(i);
-            glBindBuffer(GL_ARRAY_BUFFER, buffer);
-            glVertexAttribPointer(i++, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+            glBindBuffer(GL_ARRAY_BUFFER, d.buffer);
+            glVertexAttribPointer(i++, d.size, GL_FLOAT, GL_FALSE, 0, nullptr);
         }
 
         glDrawArrays(GL_TRIANGLES, 0, triangles);
@@ -269,9 +280,12 @@ int main(void)
 
     gl::program program(vshader_src, fshader_src);
     int mvp_id = program.uniform_get("MVP");
+    int tex_id = program.uniform_get("tex");
 
-    gl::vbo vbo(g_vertex_buffer_data);
-    vbo.add(g_color_buffer_data);
+    gl::vbo vbo(g_vertex_buffer_data, 3);
+    vbo.add(g_uv_buffer_data, 2);
+
+    image::bitmap texture("uvtemplate.bmp");
 
     glm::mat4 projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
     glm::mat4 view = glm::lookAt(glm::vec3(4, 3, 3),
@@ -290,8 +304,11 @@ int main(void)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        texture.bind();
+
         program.use();
         program.uniform_set(mvp_id, mvp);
+        program.uniform_set(tex_id, 0);
 
         vbo.draw();
         window.swap();
