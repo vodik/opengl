@@ -10,15 +10,22 @@
 
 namespace gl {
 
-class entity {
-protected:
+template<class T>
+void glUniform(GLint __attribute__((unused)) loc, const T __attribute__((unused)) &value) { }
+
+template<>
+void glUniform<glm::mat4>(GLint loc, const glm::mat4 &value) {
+    glUniformMatrix4fv(loc, 1, GL_FALSE, &value[0][0]);
+}
+
+template<>
+void glUniform<GLuint>(GLint loc, const GLuint &value) {
+    glUniform1i(loc, value);
+}
+
+class shader {
     GLuint id;
 
-public:
-    const GLuint &get() const { return id; }
-};
-
-class shader : public entity {
 public:
     shader(GLenum type, const char *src) {
         id = glCreateShader(type);
@@ -38,29 +45,26 @@ public:
             glGetShaderInfoLog(id, len, NULL, msg.get());
 
             glDeleteShader(id);
-
-            fprintf(stderr, "error compiling shader: %s\n", msg.get());
-            throw std::runtime_error(msg.get());
+            throw std::logic_error(msg.get());
         }
     }
 
+    const GLuint &get() const { return id; }
     ~shader() { printf("deleting shader\n"); glDeleteShader(id); }
 };
 
 template<class T>
-void glUniform(GLint __attribute__((unused)) loc, const T __attribute__((unused)) &value) { }
+class uniform {
+    GLuint id;
 
-template<>
-void glUniform<glm::mat4>(GLint loc, const glm::mat4 &value) {
-    glUniformMatrix4fv(loc, 1, GL_FALSE, &value[0][0]);
-}
+public:
+    uniform(GLuint u) : id(u) { }
+    void set(const T &value) { glUniform(id, value); }
+};
 
-template<>
-void glUniform<GLuint>(GLint loc, const GLuint &value) {
-    glUniform1i(loc, value);
-}
+class program {
+    GLuint id;
 
-class program : public entity {
 public:
     program(const char *vshader_src, const char *fshader_src) {
         id = glCreateProgram();
@@ -84,22 +88,16 @@ public:
             glGetProgramInfoLog(id, len, NULL, msg.get());
 
             glDeleteProgram(id);
-
-            fprintf(stderr, "error linking program: %s\n", msg.get());
-            throw std::runtime_error(msg.get());
+            throw std::logic_error(msg.get());
         }
     }
 
     ~program() { printf("deleting program\n"); glDeleteProgram(id); }
     void use() const { glUseProgram(id); }
 
-    int uniform_get(const char *name) {
-        return glGetUniformLocation(id, name);
-    }
-
     template<class T>
-    void uniform_set(int id, const T &value) {
-        glUniform(id, value);
+    uniform<T> uniform(const char *name) {
+        return gl::uniform<T>(glGetUniformLocation(id, name));
     }
 };
 

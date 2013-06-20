@@ -20,11 +20,11 @@
 const char *vshader_src =
     "#version 140                                    \n"
     "                                                \n"
+    "uniform mat4 MVP;                               \n"
+    "                                                \n"
     "in vec2 in_UV;                                  \n"
     "in vec3 in_Position;                            \n"
     "out vec2 UV;                                    \n"
-    "                                                \n"
-    "uniform mat4 MVP;                               \n"
     "                                                \n"
     "void main() {                                   \n"
     "    gl_Position = MVP * vec4(in_Position, 1.0); \n"
@@ -35,13 +35,13 @@ const char *fshader_src =
     "#version 140                                    \n"
     "precision mediump float;                        \n"
     "                                                \n"
+    "uniform sampler2D texture;                      \n"
+    "                                                \n"
     "in vec2 UV;                                     \n"
     "out vec4 color;                                 \n"
     "                                                \n"
-    "uniform sampler2D tex;                          \n"
-    "                                                \n"
     "void main() {                                   \n"
-    "    color = texture2D(tex, UV);                 \n"
+    "    color = texture2D(texture, UV);             \n"
     "}                                               \n";
 
 static const std::vector<GLfloat> g_vertex_buffer_data = {
@@ -278,9 +278,9 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    gl::program program(vshader_src, fshader_src);
-    int mvp_id = program.uniform_get("MVP");
-    int tex_id = program.uniform_get("tex");
+    gl::program shader(vshader_src, fshader_src);
+    auto shader_mvp = shader.uniform<glm::mat4>("MVP");
+    auto shader_tex = shader.uniform<GLuint>("texture");
 
     gl::vbo vbo(g_vertex_buffer_data, 3);
     vbo.add(g_uv_buffer_data, 2);
@@ -306,11 +306,12 @@ int main(void)
 
         texture.bind();
 
-        program.use();
-        program.uniform_set(mvp_id, mvp);
-        program.uniform_set(tex_id, 0);
+        shader.use();
+        shader_mvp.set(mvp);
+        shader_tex.set(0);
 
         vbo.draw();
+
         window.swap();
         SDL_Delay(10);
     }
