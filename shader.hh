@@ -2,6 +2,9 @@
 #define SHADER_H
 
 #include <cstdio>
+#include <memory>
+#include <stdexcept>
+
 #include <glm/glm.hpp>
 #include <GLES3/gl3.h>
 
@@ -31,15 +34,13 @@ public:
             GLint len = 0;
 
             glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
-            if (len > 1) {
-                char *msg = new char[len];
-                glGetShaderInfoLog(id, len, NULL, msg);
-
-                fprintf(stderr, "error compiling shader: %s\n", msg);
-                delete [] msg;
-            }
+            std::unique_ptr<char> msg(new char[len]);
+            glGetShaderInfoLog(id, len, NULL, msg.get());
 
             glDeleteShader(id);
+
+            fprintf(stderr, "error compiling shader: %s\n", msg.get());
+            throw std::runtime_error(msg.get());
         }
     }
 
@@ -47,7 +48,7 @@ public:
 };
 
 template<class T>
-void glUniform(GLint loc, T &value) { }
+void glUniform(GLint __attribute__((unused)) loc, T __attribute__((unused)) &value) { }
 
 template<>
 void glUniform<glm::mat4>(GLint loc, glm::mat4 &value) {
@@ -74,14 +75,13 @@ public:
             GLint len = 0;
 
             glGetProgramiv(id, GL_INFO_LOG_LENGTH, &len);
-            if (len > 1) {
-                char *msg = new char[len];
-                glGetProgramInfoLog(id, len, NULL, msg);
-
-                fprintf(stderr, "error linking program: %s\n", msg);
-            }
+            std::unique_ptr<char> msg(new char[len]);
+            glGetProgramInfoLog(id, len, NULL, msg.get());
 
             glDeleteProgram(id);
+
+            fprintf(stderr, "error linking program: %s\n", msg.get());
+            throw std::runtime_error(msg.get());
         }
     }
 
