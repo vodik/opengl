@@ -121,11 +121,10 @@ static const std::vector<glm::vec2> g_uv_buffer_data = {
 int run(std::function<void()> loop)
 {
     SDL_Event event;
-    bool done = false;
-    while (!done) {
+    while (true) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT || event.type == SDL_KEYUP)
-                done = true;
+                return 0;
         }
 
         loop();
@@ -166,7 +165,7 @@ int main(void)
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 mvp = projection * view * model;
 
-    auto render = [&]() {
+    auto render = [&](void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         texture.bind(GL_TEXTURE0);
