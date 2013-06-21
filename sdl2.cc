@@ -118,10 +118,26 @@ static const std::vector<glm::vec2> g_uv_buffer_data = {
     glm::vec2(0.667979f, 1.0f-0.335851f)
 };
 
+int run(std::function<void()> loop)
+{
+    SDL_Event event;
+    bool done = false;
+    while (!done) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT || event.type == SDL_KEYUP)
+                done = true;
+        }
+
+        loop();
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     sdl::sdl sdl(3, 1);
-    sdl::window window = sdl.new_window("Tutorial");
+    sdl::window window = sdl.new_window("vodik");
 
     SDL_GL_SetSwapInterval(1);
 
@@ -150,15 +166,7 @@ int main(void)
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 mvp = projection * view * model;
 
-    // event loop
-    SDL_Event event;
-    bool done = false;
-    while (!done) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT || event.type == SDL_KEYUP)
-                done = true;
-        }
-
+    auto render = [&]() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         texture.bind(GL_TEXTURE0);
@@ -171,7 +179,7 @@ int main(void)
 
         window.swap();
         SDL_Delay(100);
-    }
+    };
 
-    return 0;
+    return run(render);
 }
