@@ -123,8 +123,13 @@ int run(std::function<void()> loop)
     SDL_Event event;
     while (true) {
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT || event.type == SDL_KEYUP)
+            switch (event.type) {
+            case SDL_QUIT:
                 return 0;
+            case SDL_KEYUP:
+                if (event.key.keysym.sym == SDLK_ESCAPE)
+                    return 0;
+            }
         }
 
         loop();
@@ -136,7 +141,7 @@ int run(std::function<void()> loop)
 int main(void)
 {
     sdl::sdl sdl(3, 1);
-    sdl::window window = sdl.new_window("vodik");
+    sdl::window window = sdl.new_window("vodik", 612, 512);
 
     SDL_GL_SetSwapInterval(1);
 
@@ -175,9 +180,7 @@ int main(void)
         shader_tex.set(0);
 
         vbo.draw();
-
         window.swap();
-        SDL_Delay(100);
     };
 
     return run(render);

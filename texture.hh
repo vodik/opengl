@@ -83,7 +83,7 @@ gl::texture from_bitmap(const char *path) {
     fread(data.get(), 1, imageSize, fp);
     fclose(fp);
 
-    return std::move(gl::texture(width, height, std::move(data)));
+    return gl::texture(width, height, std::move(data));
 }
 
 }

@@ -62,9 +62,9 @@ class window {
     SDL_GLContext glcontext;
 
 public:
-    window(const char *title) {
+    window(const char *title, int width, int height) {
         ptr = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,
-                               SDL_WINDOWPOS_CENTERED, 512, 512,
+                               SDL_WINDOWPOS_CENTERED, width, height,
                                SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
         if (!ptr)
             sdldie("unable to create window");
@@ -118,7 +118,9 @@ public:
         SDL_Quit();
     }
 
-    window new_window(const char *title) { return std::move(window(title)); }
+    window new_window(const char *title, int width, int height) {
+        return window(title, width, height);
+    }
 };
 
 }
